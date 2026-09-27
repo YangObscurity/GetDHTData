@@ -2,9 +2,9 @@
 #include "common.h"
 #include "esp_http_client.h"
 #include "http_build.h"
+#include "sdkconfig.h"
 
 static const char * TAG = "HTTP";
-static char * server_url = "http://192.168.88.0/api/v1";
 static esp_http_client_handle_t http_handler;
 int8_t max_retry = 3;
 
@@ -30,7 +30,7 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 esp_err_t http_init(void)
 {
     esp_http_client_config_t cfg = {
-        .url = server_url,
+        .url = CONFIG_HTTP_SERVER_URL,
         .method = HTTP_METHOD_POST,
         .timeout_ms = 4000,
         .event_handler = http_event_handler,
