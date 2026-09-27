@@ -1,0 +1,7 @@
+menu "DHT_GPIO"
+    config DHT_GPIO
+        int "specify DHT11 pin"
+        help
+            DEFINE THE SPECIFIED PIN WHICH 
+            YOU CONNECTED TO DHT11 SENSOR
+endmenu
