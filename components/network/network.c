@@ -11,6 +11,7 @@
 static EventGroupHandle_t wifi_event_handler = NULL;
 static const char * TAG = "WIFI"; 
 static int8_t current_retry = 0;
+static TaskHandle_t life_guard_task_handler = NULL;
 void life_guard(void* arg)
 {
     for(;;)
@@ -31,6 +32,11 @@ static void event_handler (void* event_handler_arg,
 {
     if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
     {
+        if(life_guard_task_handler != NULL)
+        {
+            vTaskSuspend(life_guard_task_handler);
+            ESP_LOGI(TAG,"[SUSPEND]WIFI GUARD");
+        }
         ESP_LOGI(TAG,"WIFI STATION MODE START");
         esp_wifi_connect();
     }
@@ -48,6 +54,11 @@ static void event_handler (void* event_handler_arg,
         else{
             ESP_LOGI(TAG,"MAX RETRY REACHED");
             xEventGroupSetBits(wifi_event_handler,WIFI_CONNECT_FAIL);
+            if(eTaskGetState(life_guard_task_handler) == eSuspended)
+            {
+                vTaskResume(life_guard_task_handler);
+                ESP_LOGI(TAG,"[RESUME]WIFI GUARD");
+            }
             ESP_LOGI(TAG,"LIFE GUARD PROCESS START");
         }
     }
@@ -94,7 +105,7 @@ void network_init(void)
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA,&wifi_config));
     ESP_LOGI(TAG,"WIFI ACTIVATING");
     ESP_ERROR_CHECK(esp_wifi_start());
-    xTaskCreatePinnedToCore(life_guard,"WIFI LIFE GUARD",NORMAL_STACKSIZE,NULL,9,NULL,1);
+    xTaskCreatePinnedToCore(life_guard,"WIFI LIFE GUARD",NORMAL_STACKSIZE,NULL,9,life_guard_task_handler,1);
 }
 EventGroupHandle_t GetEventGroupHandler(void)
 {

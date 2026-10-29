@@ -56,6 +56,9 @@ __pycache__/
 *.egg-info/
 dist/
 
+# Python Server Configuration
+api/
+
 # Virtual environment folders
 venv/
 .venv/
